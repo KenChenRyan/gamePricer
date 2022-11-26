@@ -10,10 +10,13 @@ from bs4 import BeautifulSoup
 from tkinter import filedialog as fd 
 
 def test():
+    print("Testing Borderlands 3")
     game = "Borderlands 3"
-    #the slash depends on the 
     ggdotdealspage = "files/borderlands3GGDeals.html"
-    game_to_lowest_grey_markerplace_value(game,ggdotdealspage)
+    if not os.path.exists(ggdotdealspage):
+        print(game_to_lowest_grey_markerplace_value(game))
+    else:
+        print(game_to_lowest_grey_markerplace_value(game,ggdotdealspage))
 
 def convert_games_file_to_json():
     #Function converts text file of games to include lowest grey market place value
@@ -104,7 +107,7 @@ def create_table():
 def main():
     userRunning = True
     while (userRunning):
-        print("\n----------------------------------------------------------------------------------------\nWhat would you like to do?\n")
+        print("\n---------------------------------------\nWhat would you like to do?\n")
         print("1. Convert text file of games to include lowest grey market place value.\n2. See the lowest grey marketplace value of a game")
         print("3. Create table\n4. Quit program\n5. Test routine")
         user_input = input()
