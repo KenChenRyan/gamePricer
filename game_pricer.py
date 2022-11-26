@@ -1,6 +1,5 @@
 #! python3
 from html.parser import HTMLParser
-#from pprint import pprint
 #import json
 #will have to modify some file names to include / or \ depending on the
 #OS the user is running
@@ -11,7 +10,6 @@ from tkinter import filedialog as fd
 
 def test():
     game = "Borderlands 3"
-    #the slash depends on the 
     ggdotdealspage = "files/borderlands3GGDeals.html"
     game_to_lowest_grey_markerplace_value(game,ggdotdealspage)
 
