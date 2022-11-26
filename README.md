@@ -1,6 +1,4 @@
 # Game Pricer
-
-## Purpose
 A program that gives the user a list or chart of their spare game codes and their respective grey market place value.
 
 ### Features
