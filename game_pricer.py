@@ -1,6 +1,5 @@
 #! python3
 from html.parser import HTMLParser
-#from pprint import pprint
 #import json
 #will have to modify some file names to include / or \ depending on the
 #OS the user is running
