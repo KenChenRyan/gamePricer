@@ -1,12 +1,13 @@
 #! python3
 from html.parser import HTMLParser
-#import json
+import json
 #will have to modify some file names to include / or \ depending on the
 #OS the user is running
 import os
 import requests
 from bs4 import BeautifulSoup
-from tkinter import filedialog as fd 
+from tkinter import filedialog as fd
+from tabulate import tabulate
 
 def test():
     print("Testing Borderlands 3")
@@ -31,7 +32,7 @@ def convert_games_file_to_json():
         if(os.path.exists(json_games_data)):
             os.remove(json_games_data)
         json_file = open(json_games_data,"a")
-        json_file.write('[\n')
+        json_file.write('{\n"games": [\n')
         beginning = True
         for line in file_games:
             line = line.strip()
@@ -41,7 +42,7 @@ def convert_games_file_to_json():
             else:
                 beginning = False
             json_file.write('{"game":"'+line+'", "price":'+game_to_lowest_grey_markerplace_value(line)+'}')
-        json_file.write('\n]')
+        json_file.write('\n]\n}')
         json_file.close()
 
 
@@ -76,32 +77,46 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
             price = price[1:]
     return price
 
-
-def update_data():
-    json_games_with_data = ''
-    try:
-        json_games_with_data = fd.askopenfilename()
-        file = open(json_games_with_data)
-        print("Opened "+ json_games_with_data)
-        contents = json_games_with_data.read()
-        print("You are currently tracking:\n" + contents)
-    except:
-        print("You have not selected a file or it does not exist.")
+def organize_json(is_ascending, json_object):
+    return_json = sorted(json_object['games'],key = lambda game: game["price"],reverse = not is_ascending)
+    return return_json
 
 def create_table():
     json_games_with_data = ''
+    json_var = ''
     try:
         json_games_with_data = fd.askopenfilename()
-        file = open(json_games_with_data)
-        print("Opened "+ json_games_with_data)
-        contents = json_games_with_data.read()
-        print("You are currently tracking:\n" + contents)
     except:
         print("You have not selected a file or it does not exist.")
-    #I don't know if I will use the code below
-    with open(json_games_with_data,"r") as file:
-        print('reading file')
-    print("Done")
+    with open(json_games_with_data,"r", encoding="utf-8") as file:
+        json_var = json.loads(file.read())
+    if json_var:
+        print("Do you want to order by (1)ascending, (2)descending, or (3)none?")
+        order = input()
+        if order == '1' or order == '2':
+            order = int(order)
+        else:
+            order = 3
+        file_table_string = "files/table.txt"
+        if os.path.exists(file_table_string):
+            os.remove(file_table_string)
+        file_table = open(file_table_string,"w", encoding="utf-8")
+        if order == 1:
+            json_var['games'] = organize_json(True,json_var)
+        elif order == 2:
+            json_var['games'] = organize_json(False,json_var)
+        print("Do you want to include game prices? (y/n)")
+        with_prices = input()
+        if with_prices.lower() == 'y':
+            file_table.write(tabulate(json_var['games'], headers = 'keys' ,tablefmt = 'fancy_grid'))
+        else:
+            temp_list = list()
+            for game in json_var['games']:
+                temp_list.append([game['game']])
+            print(temp_list)
+            file_table.write(tabulate(temp_list, headers = ['Games'],tablefmt = 'fancy_grid'))
+
+        file_table.close()
 
 def main():
     userRunning = True
@@ -109,17 +124,17 @@ def main():
         print("\n---------------------------------------\nWhat would you like to do?\n")
         print("1. Convert text file of games to include lowest grey market place value.\n2. See the lowest grey marketplace value of a game")
         print("3. Create table\n4. Quit program\n5. Test routine")
-        user_input = input()
-        if user_input == "1":
+        user_input = int(input())
+        if user_input == 1:
             convert_games_file_to_json()
-        if user_input == "2":
+        if user_input == 2:
             game = input("What's the name of the game?\n")
             game_to_lowest_grey_markerplace_value(game)
-        if user_input == "3":
+        if user_input == 3:
             create_table()
-        if user_input == "4":
+        if user_input == 4:
             userRunning = False
-        if user_input == "5":
+        if user_input == 5:
             test()    
 
 if __name__ == "__main__":
