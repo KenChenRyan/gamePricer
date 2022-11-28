@@ -55,8 +55,6 @@ def convert_games_file_to_json():
                 else:
                     beginning = False
                 json_file.write('{"game":"'+line+'", "price":'+game_to_lowest_grey_markerplace_value(line)+'}')
-        elif(file_games_ext == 'csv'):
-            print("CSV files are not supported yet")
         else:
             print("Your file format is not recognized")
         json_file.write('\n]\n}')
