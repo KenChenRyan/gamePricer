@@ -10,22 +10,33 @@ from tkinter import filedialog as fd
 from tabulate import tabulate
 
 def test():
-    print("Testing Borderlands 3")
-    game = "Borderlands 3"
-    ggdotdealspage = "files/borderlands3GGDeals.html"
-    if not os.path.exists(ggdotdealspage):
-        print(game_to_lowest_grey_markerplace_value(game))
-    else:
-        print(game_to_lowest_grey_markerplace_value(game,ggdotdealspage))
+    test_case = 1
+    match test_case:
+        case 0:
+            print("Testing Borderlands 3")
+            game = "Borderlands 3"
+            ggdotdealspage = "files/borderlands3GGDeals.html"
+            if not os.path.exists(ggdotdealspage):
+                print(game_to_lowest_grey_markerplace_value(game))
+            else:
+                print(game_to_lowest_grey_markerplace_value(game,ggdotdealspage))
+        case 1:
+            #game = "Donuts'n'justice"
+            game = "Borderlands 4"
+            print("Looking for "+game)
+            print(game_to_lowest_grey_markerplace_value(game))
 
 def convert_games_file_to_json():
     #Function converts text file of games to include lowest grey market place value
     file_games_name = ''
     file_games = ''
     json_games_data = 'files/game_data.json'
+    file_games_ext = ''
     try:
         file_games_name = fd.askopenfilename()
+        file_games_ext = os.path.splitext(file_games_name)[1]
         file_games = open(file_games_name,"r")
+        print
     except:
         print("You have not selected a file or it does not exist.")
     if file_games:
@@ -34,43 +45,83 @@ def convert_games_file_to_json():
         json_file = open(json_games_data,"a")
         json_file.write('{\n"games": [\n')
         beginning = True
-        for line in file_games:
-            line = line.strip()
-            print(line)
-            if not beginning:
-                json_file.write(',\n')
-            else:
-                beginning = False
-            json_file.write('{"game":"'+line+'", "price":'+game_to_lowest_grey_markerplace_value(line)+'}')
+        print(file_games_ext)
+        if(file_games_ext == '.txt'):
+            for line in file_games:
+                line = line.strip()
+                print(line)
+                if not beginning:
+                    json_file.write(',\n')
+                else:
+                    beginning = False
+                json_file.write('{"game":"'+line+'", "price":'+game_to_lowest_grey_markerplace_value(line)+'}')
+        elif(file_games_ext == 'csv'):
+            print("CSV files are not supported yet")
+        else:
+            print("Your file format is not recognized")
         json_file.write('\n]\n}')
         json_file.close()
 
 
 def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
-    #if function execution is not called in a test case
-    #(if there is a lack of previously downloaded HTML file)
+    #first if statement execution is not called in a test case
+    #(where the HTML page is provided before hand)
+    
     #should be done with lxml instead of html.parser for speed purposes
     parser = 'html.parser'
     if (not ggdotdealshtml):
+        price = ''
         soup = ''
+        #boolean for if the game will not be found in the search page
+        originalGameString = game
         game = game.replace(" ","-")
         r = requests.get("https://gg.deals/game/"+game)
-        #if page of game has been found right away
-        if (not (r.raise_for_status())):
+        #if page of game has not been found right away
+        if (r.status_code == 404):
+            gamePageFound = False
+            game = originalGameString.replace(" ","+")
+            r = requests.get("https://gg.deals/games/",params = {'title': game})
+            soup = BeautifulSoup(r.text,parser)
+            listOfGames = soup.body.find('div', class_='main-content').find('div', id ='page').find('div', class_='games-box').find('div', class_='game-section').find('div',class_='col-left').find('div').find('div').find_all('div', class_='hoverable-box')
+            emptyList = False
+            for gameInList in listOfGames:
+                if 'empty' in gameInList['class']:
+                    emptyList = True
+                    print("The game has not been found")
+                    break
+                else:
+                    #gamePageFound = True
+                    listingName = gameInList.find('div',class_='game-info-wrapper').find('div').find('div').text
+                    #make them both all lower case
+                    if listingName.lower() == originalGameString.lower():
+                        price = gameInList.find('div',class_='game-info-wrapper').find('div', class_='price-wrap').find('div', class_="shop-price-keyshops").find('div').text
+                        while not price[0].isnumeric():
+                            price = price[1:]
+            #if the games that have been found in the list do not match the given game then have
+            #the user confirm if there is a matching game
+            if not emptyList and  price == '':
+                for gameInList in listOfGames:
+                    listingName = gameInList.find('div',class_='game-info-wrapper').find('div').find('div').text
+                    print("Is your game "+listingName+"?(Y/N)")
+                    answer = (input()).lower()
+                    if (answer == 'y'):
+                        price = gameInList.find('div',class_='game-info-wrapper').find('div', class_='price-wrap').find('div', class_="shop-price-keyshops").find('div').text
+                        while not price[0].isnumeric():
+                            price = price[1:]
+                        break;
+                    else:
+                        continue
+                if price == '':
+                    print("The game in question("+originalGameString+")could not be found")  
+        else:
             print("Game found right away")
             gamePageFound = True
             soup = BeautifulSoup(r.text,parser)
-        else:
-            game = game.replace("-","+")
-            r = requests.get("https://gg.deals/games/",params = {'title': game})
-            gamePageFound = True
-            soup = BeautifulSoup(r.text,parser)
     else:
-        gamePageFound = True
         with open(ggdotdealshtml, encoding="utf8") as fp:
             soup = BeautifulSoup(fp,parser)
     #if the page of the game has been found
-    if gamePageFound:
+    if gamePageFound and price == '':
         game_card = soup.body.find('div', class_ = "main-content").find('div',id="page").find('div',id="game-card")
         price = game_card.find('div').find('div').find('div', class_='col-right').find('div').find('div',class_="header-game-prices-tabs-content").find('div').find('div').find('div',class_="best-deal").find('a').find('span').text
         while not price[0].isnumeric():
@@ -126,10 +177,11 @@ def main():
         print("3. Create table\n4. Quit program\n5. Test routine")
         user_input = int(input())
         if user_input == 1:
+            print("Txt files will be assumed that games are seperated by newlines.")
             convert_games_file_to_json()
         if user_input == 2:
             game = input("What's the name of the game?\n")
-            game_to_lowest_grey_markerplace_value(game)
+            print(game_to_lowest_grey_markerplace_value(game))
         if user_input == 3:
             create_table()
         if user_input == 4:
