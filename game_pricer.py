@@ -93,8 +93,11 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
                     #make them both all lower case
                     if listingName.lower() == originalGameString.lower():
                         price = gameInList.find('div',class_='game-info-wrapper').find('div', class_='price-wrap').find('div', class_="shop-price-keyshops").find('div').text
-                        while not price[0].isnumeric():
-                            price = price[1:]
+                        if price.strip() == 'Unavailable':
+                            pass
+                        else:
+                            while not price[0].isnumeric():
+                                price = price[1:]
             #if the games that have been found in the list do not match the given game then have
             #the user confirm if there is a matching game
             if not emptyList and  price == '':
@@ -104,9 +107,12 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
                     answer = (input()).lower()
                     if (answer == 'y'):
                         price = gameInList.find('div',class_='game-info-wrapper').find('div', class_='price-wrap').find('div', class_="shop-price-keyshops").find('div').text
-                        while not price[0].isnumeric():
-                            price = price[1:]
-                        break;
+                        if price.strip() == 'Unavailable':
+                            pass
+                        else:
+                            while not price[0].isnumeric():
+                                price = price[1:]
+                        break
                     else:
                         continue
                 if price == '':
@@ -122,8 +128,11 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
     if gamePageFound and price == '':
         game_card = soup.body.find('div', class_ = "main-content").find('div',id="page").find('div',id="game-card")
         price = game_card.find('div').find('div').find('div', class_='col-right').find('div').find('div',class_="header-game-prices-tabs-content").find('div').find('div').find('div',class_="best-deal").find('a').find('span').text
-        while not price[0].isnumeric():
-            price = price[1:]
+        if price == 'Unavailable':
+            pass
+        else:
+            while not price[0].isnumeric():
+                price = price[1:]
     return price
 
 def organize_json(is_ascending, json_object):
