@@ -93,7 +93,7 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
                     #make them both all lower case
                     if listingName.lower() == originalGameString.lower():
                         price = gameInList.find('div',class_='game-info-wrapper').find('div', class_='price-wrap').find('div', class_="shop-price-keyshops").find('div').text
-                        if price.strip() == 'Unavailable':
+                        if price.strip() == 'Unavailable' or price.strip() == 'Coming soon':
                             pass
                         else:
                             while not price[0].isnumeric():
@@ -107,7 +107,7 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
                     answer = (input()).lower()
                     if (answer == 'y'):
                         price = gameInList.find('div',class_='game-info-wrapper').find('div', class_='price-wrap').find('div', class_="shop-price-keyshops").find('div').text
-                        if price.strip() == 'Unavailable':
+                        if price.strip() == 'Unavailable' or price.strip() == 'Coming soon':
                             pass
                         else:
                             while not price[0].isnumeric():
@@ -128,7 +128,7 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
     if gamePageFound and price == '':
         game_card = soup.body.find('div', class_ = "main-content").find('div',id="page").find('div',id="game-card")
         price = game_card.find('div').find('div').find('div', class_='col-right').find('div').find('div',class_="header-game-prices-tabs-content").find('div').find('div').find('div',class_="best-deal").find('a').find('span').text
-        if price == 'Unavailable':
+        if price == 'Unavailable' or price.strip() == 'Coming soon':
             pass
         else:
             while not price[0].isnumeric():
