@@ -58,7 +58,12 @@ def convert_games_file_to_json():
                     json_file.write(',\n')
                 else:
                     beginning = False
-                json_file.write('{"game":"'+line+'", "price":'+game_to_lowest_grey_markerplace_value(line)+'}')
+                price = game_to_lowest_grey_markerplace_value(line)
+                if price[0].isnumeric():
+                    pass
+                else:
+                    price = '"'+price+'"'
+                json_file.write('{"game":"'+line+'", "price":'+price+'}')
         else:
             print("Your file format is not recognized")
         json_file.write('\n]\n}')
@@ -131,7 +136,7 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
     #if the page of the game has been found
     if gamePageFound and price == '':
         game_card = soup.body.find('div', class_ = "main-content").find('div',id="page").find('div',id="game-card")
-        price = game_card.find('div').find('div').find('div', class_='col-right').find('div').find('div',class_="header-game-prices-tabs-content").find('div').find('div').find('div').find_next_sibling().find('a').text
+        price = game_card.find('div').find('div').find('div', class_='col-right').find('div').find('div',class_="header-game-prices-tabs-content").find('div').find('div').find('div').find_next_sibling().find('a').find('span').text
         price = price_validation(price)
     return price
 
