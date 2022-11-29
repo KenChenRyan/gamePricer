@@ -7,4 +7,5 @@ A program that gives the user a list or chart of their spare PC game codes and t
 - Can find prices of individual games.
 
 ### To Do
-- The grey market place given is the lowest but after version 1.0 could be specified to display the highest, mean. or median as well or instead of. This is possible by going through the different grey market places gg(dot)deals displays.
+- To see the mean of the first couple of listed prices. Or the lowest listed depending on if the amount of listings doesn't exceed a minimum. The option to only do the lowest listed should be avaiable.
+- Have it exclude a lisitng based on the DRM of it (Steam/Epic Games Store/Rockstar Games Launcher/GOG/Ubisoft Launcher (UPlay)/EA Games Launcher)
