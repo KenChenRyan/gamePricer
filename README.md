@@ -2,7 +2,7 @@
 A program that gives the user a list or chart of their spare PC game codes and their respective grey market place value.
 
 ### Features
-- Take games from .txt file (games that are seperated by newlines) and give back a JSON file that has their grey market price listed. That JSON file can then be converted into a table that is saved to a .txt file.
+- Take games from a .txt file (games should be seperated by lines) and give back a JSON file that has their respective grey market price listed. That JSON file can then be converted into a table that is saved to a .txt file.
 - The table can be ordered from ascending, desending (in price) or left the way the games are given.
 - Can find prices of individual games.
 
