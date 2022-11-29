@@ -10,7 +10,7 @@ from tkinter import filedialog as fd
 from tabulate import tabulate
 
 def test():
-    test_case = 1
+    test_case = 2
     match test_case:
         case 0:
             print("Testing Borderlands 3")
@@ -24,6 +24,10 @@ def test():
             #game = "Donuts'n'justice"
             game = "Borderlands 4"
             print("Looking for "+game)
+            print(game_to_lowest_grey_markerplace_value(game))
+        case 2:
+            print("Testing Borderlands 3")
+            game = "Borderlands 3"
             print(game_to_lowest_grey_markerplace_value(game))
 
 def convert_games_file_to_json():
@@ -60,6 +64,14 @@ def convert_games_file_to_json():
         json_file.write('\n]\n}')
         json_file.close()
 
+#helper function
+def price_validation(price):
+    if price.strip() == 'Unavailable' or price.strip() == 'Coming soon':
+        pass
+    else:
+        while not price[0].isnumeric():
+            price = price[1:]
+    return price
 
 def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
     #first if statement execution is not called in a test case
@@ -93,11 +105,7 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
                     #make them both all lower case
                     if listingName.lower() == originalGameString.lower():
                         price = gameInList.find('div',class_='game-info-wrapper').find('div', class_='price-wrap').find('div', class_="shop-price-keyshops").find('div').text
-                        if price.strip() == 'Unavailable' or price.strip() == 'Coming soon':
-                            pass
-                        else:
-                            while not price[0].isnumeric():
-                                price = price[1:]
+                        price = price_validation(price)
             #if the games that have been found in the list do not match the given game then have
             #the user confirm if there is a matching game
             if not emptyList and  price == '':
@@ -107,11 +115,7 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
                     answer = (input()).lower()
                     if (answer == 'y'):
                         price = gameInList.find('div',class_='game-info-wrapper').find('div', class_='price-wrap').find('div', class_="shop-price-keyshops").find('div').text
-                        if price.strip() == 'Unavailable' or price.strip() == 'Coming soon':
-                            pass
-                        else:
-                            while not price[0].isnumeric():
-                                price = price[1:]
+                        price = price_validation(price)
                         break
                     else:
                         continue
@@ -127,14 +131,11 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
     #if the page of the game has been found
     if gamePageFound and price == '':
         game_card = soup.body.find('div', class_ = "main-content").find('div',id="page").find('div',id="game-card")
-        price = game_card.find('div').find('div').find('div', class_='col-right').find('div').find('div',class_="header-game-prices-tabs-content").find('div').find('div').find('div',class_="best-deal").find('a').find('span').text
-        if price == 'Unavailable' or price.strip() == 'Coming soon':
-            pass
-        else:
-            while not price[0].isnumeric():
-                price = price[1:]
+        price = game_card.find('div').find('div').find('div', class_='col-right').find('div').find('div',class_="header-game-prices-tabs-content").find('div').find('div').find('div').find_next_sibling().find('a').text
+        price = price_validation(price)
     return price
 
+#helper function
 def organize_json(is_ascending, json_object):
     return_json = sorted(json_object['games'],key = lambda game: game["price"],reverse = not is_ascending)
     return return_json
