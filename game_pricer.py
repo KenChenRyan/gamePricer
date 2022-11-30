@@ -1,8 +1,6 @@
 #! python3
 from html.parser import HTMLParser
 import json
-#will have to modify some file names to include / or \ depending on the
-#OS the user is running
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -10,7 +8,7 @@ from tkinter import filedialog as fd
 from tabulate import tabulate
 
 def test():
-    test_case = 2
+    test_case = 1
     if test_case == 0:
         print("Testing Borderlands 3")
         game = "Borderlands 3"
@@ -64,8 +62,12 @@ def convert_games_file_to_json():
                 else:
                     beginning = False
                 price = game_to_lowest_grey_markerplace_value(line)
-                if price[0].isnumeric():
+                if isinstance(price, float) or isinstance(price, int):
+                    price = str(price)
                     pass
+                elif price[0].isnumeric():
+                    pass
+                #this is here for the case that price is a string ("Unavaible" or "Coming soon")
                 else:
                     price = '"'+price+'"'
                 json_file.write('{"game":"'+line+'", "price":'+price+'}')
@@ -76,8 +78,10 @@ def convert_games_file_to_json():
 
 #helper function
 def price_validation(price):
+    #To avoid running into a bug when sorting the json file into a table if the price is unavaiable then it will be reflected as 0
     if price.strip() == 'Unavailable' or price.strip() == 'Coming soon':
-        pass
+        print("The price is listed as "+price+" so the game will be listed as 0.")
+        price = 0.00
     else:
         while not price[0].isnumeric():
             price = price[1:]
@@ -153,10 +157,23 @@ def organize_json(is_ascending, json_object):
 def create_table():
     json_games_with_data = ''
     json_var = ''
+    popupFailed = False
     try:
         json_games_with_data = fd.askopenfilename()
+        if json_games_with_data == '':
+            raise Exception()
     except:
-        print("You have not selected a file or it does not exist.")
+        popupFailed = True
+        print("You have not selected a file or the pop up failed.")
+    if popupFailed:
+        json_games_with_data = "files/game_data.json"
+        print("Is your file located at "+json_games_with_data+" ?(Y/N)")
+        answer = input()
+        if 'y' == answer.lower():
+            pass
+        else:
+            print("Please type in the path to your file (relative to this python file)")
+            json_games_with_data = input()
     with open(json_games_with_data,"r", encoding="utf-8") as file:
         json_var = json.loads(file.read())
     if json_var:
