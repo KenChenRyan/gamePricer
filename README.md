@@ -7,12 +7,12 @@ Either install the requried libraries that are listed in ```requirements.txt``` 
 To Install a virtual enviornment
 ```python3 -m venv venv```.
 To activate/enter the virtual environment in Windows
-```.\venv\Scripts\activate```
+```.\venv\Scripts\activate```.
 To activate/enter the virtual environment in a Unix based enviornment (Linux or macOS)
-```source venv/bin/activate```
+```source venv/bin/activate```.
 
 To install the required Python libraries (Whether inside a virtual environment or instaling it outside)
-```pip3 install -r .\requirements.txt```
+```pip3 install -r .\requirements.txt```.
 ### Running the program
 ```python3 game_pricer.py``` to run the program
 
