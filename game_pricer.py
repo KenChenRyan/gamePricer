@@ -37,44 +37,50 @@ def convert_games_file_to_json():
         file_games_name = fd.askopenfilename()
         file_games_ext = os.path.splitext(file_games_name)[1]
         file_games = open(file_games_name,"r")
-        print
     except:
         print("You have not selected a file or the popup failed.")
         popUpFailed = True
     if popUpFailed:
         print("Please type in the path to your file (relative to this python file)")
         file_games_name = input()
-        file_games_ext = os.path.splitext(file_games_name)[1]
-        file_games = open(file_games_name,"r")
+        try:
+            file_games_ext = os.path.splitext(file_games_name)[1]
+            file_games = open(file_games_name,"r")
+        except:
+            print("File does not exist")
+            file_games = ''
     if file_games:
-        if(os.path.exists(json_games_data)):
-            os.remove(json_games_data)
-        json_file = open(json_games_data,"a")
-        json_file.write('{\n"games": [\n')
-        beginning = True
-        print(file_games_ext)
         if(file_games_ext == '.txt'):
-            for line in file_games:
-                line = line.strip()
-                print(line)
-                if not beginning:
-                    json_file.write(',\n')
-                else:
-                    beginning = False
-                price = game_to_lowest_grey_markerplace_value(line)
-                if isinstance(price, float) or isinstance(price, int):
-                    price = str(price)
-                    pass
-                elif price[0].isnumeric():
-                    pass
-                #this is here for the case that price is a string ("Unavaible" or "Coming soon")
-                else:
-                    price = '"'+price+'"'
-                json_file.write('{"game":"'+line+'", "price":'+price+'}')
+            if(os.path.exists(json_games_data)):
+                os.remove(json_games_data)
+            json_file = open(json_games_data,"a")
+            json_file.write('{\n"games": [\n')
+            beginning = True
+            try:
+                for line in file_games:
+                    line = line.strip()
+                    print(line)
+                    if not beginning:
+                        json_file.write(',\n')
+                    else:
+                        beginning = False
+                    price = game_to_lowest_grey_markerplace_value(line)
+                    if isinstance(price, float) or isinstance(price, int):
+                        price = str(price)
+                        pass
+                    elif price[0].isnumeric():
+                        pass
+                    #this is here for the case that price is a string ("Unavaible" or "Coming soon")
+                    else:
+                        price = '"'+price+'"'
+                    json_file.write('{"game":"'+line+'", "price":'+price+'}')
+            except:
+                print("Something is wrong with your file.")
+            json_file.write('\n]\n}')
+            json_file.close()
         else:
             print("Your file format is not recognized")
-        json_file.write('\n]\n}')
-        json_file.close()
+        file_games.close()
 
 #helper function
 def price_validation(price):
@@ -125,14 +131,16 @@ def game_to_lowest_grey_markerplace_value(game,ggdotdealshtml=''):
             if not emptyList and  price == '':
                 for gameInList in listOfGames:
                     listingName = gameInList.find('div',class_='game-info-wrapper').find('div').find('div').text
-                    print("Is your game "+listingName+"?(Y/N)")
+                    print("Is your game "+listingName+"?(y/n)")
                     answer = (input()).lower()
-                    if (answer == 'y'):
+                    if (answer.lower() == 'y' or answer.lower() == 'yes'):
                         price = gameInList.find('div',class_='game-info-wrapper').find('div', class_='price-wrap').find('div', class_="shop-price-keyshops").find('div').text
                         price = price_validation(price)
                         break
-                    else:
+                    elif (answer.lower() == 'n' or answer.lower() == 'no'):
                         continue
+                    else:
+                        print("I'll assume that's a no")
                 if price == '':
                     print("The game in question("+originalGameString+")could not be found")  
         else:
@@ -156,26 +164,33 @@ def organize_json(is_ascending, json_object):
 
 def create_table():
     json_games_with_data = ''
+    json_games_with_data_ext = ''
     json_var = ''
     popupFailed = False
     try:
         json_games_with_data = fd.askopenfilename()
         if json_games_with_data == '':
             raise Exception()
+        json_games_with_data_ext = os.path.splitext(json_games_with_data)[1]
     except:
         popupFailed = True
         print("You have not selected a file or the pop up failed.")
     if popupFailed:
         json_games_with_data = "files/game_data.json"
-        print("Is your file located at "+json_games_with_data+" ?(Y/N)")
+        print("Is your file located at "+json_games_with_data+" ?(y/n)")
         answer = input()
-        if 'y' == answer.lower():
+        if 'y' == answer.lower() or 'yes' == answer.lower():
             pass
         else:
             print("Please type in the path to your file (relative to this python file)")
             json_games_with_data = input()
-    with open(json_games_with_data,"r", encoding="utf-8") as file:
-        json_var = json.loads(file.read())
+            json_games_with_data_ext = os.path.splitext(json_games_with_data)[1]
+    try:
+        with open(json_games_with_data,"r", encoding="utf-8") as file:
+            json_var = json.loads(file.read())
+    except:
+        print("File either doesn't exist or is of wrong type")
+        json_var = ''
     if json_var:
         print("Do you want to order by (1)ascending, (2)descending, or (3)none?")
         order = input()
@@ -187,21 +202,24 @@ def create_table():
         if os.path.exists(file_table_string):
             os.remove(file_table_string)
         file_table = open(file_table_string,"w", encoding="utf-8")
-        if order == 1:
-            json_var['games'] = organize_json(True,json_var)
-        elif order == 2:
-            json_var['games'] = organize_json(False,json_var)
-        print("Do you want to include game prices? (y/n)")
-        with_prices = input()
-        if with_prices.lower() == 'y':
-            file_table.write(tabulate(json_var['games'], headers = 'keys' ,tablefmt = 'fancy_grid'))
-        else:
-            temp_list = list()
-            for game in json_var['games']:
-                temp_list.append([game['game']])
-            print(temp_list)
-            file_table.write(tabulate(temp_list, headers = ['Games'],tablefmt = 'fancy_grid'))
-
+        try:
+            if order == 1:
+                json_var['games'] = organize_json(True,json_var)
+            elif order == 2:
+                json_var['games'] = organize_json(False,json_var)
+            print("Do you want to include game prices? (y/n)")
+            with_prices = input()
+            if with_prices.lower() == 'y' or with_prices.lower() == 'yes':
+                file_table.write(tabulate(json_var['games'], headers = 'keys' ,tablefmt = 'fancy_grid'))
+            elif with_prices.lower() == 'n' or with_prices.lower() == 'no':
+                temp_list = list()
+                for game in json_var['games']:
+                    temp_list.append([game['game']])
+                file_table.write(tabulate(temp_list, headers = ['Games'],tablefmt = 'fancy_grid'))
+            else:
+                print("Response not understood")
+        except:
+            print("Something is wrong with your file")
         file_table.close()
 
 def main():
@@ -210,19 +228,22 @@ def main():
         print("\n---------------------------------------\nWhat would you like to do?\n")
         print("1. Convert text file of games to include lowest grey market place value.\n2. See the lowest grey marketplace value of a game")
         print("3. Create table\n4. Quit program\n5. Test routine")
-        user_input = int(input())
+        user_input = input()
+        if user_input.isnumeric():
+            user_input = int(user_input)
         if user_input == 1:
             print("Txt files will be assumed that games are seperated by newlines.")
             convert_games_file_to_json()
-        if user_input == 2:
+        elif user_input == 2:
             game = input("What's the name of the game?\n")
             print(game_to_lowest_grey_markerplace_value(game))
-        if user_input == 3:
+        elif user_input == 3:
             create_table()
-        if user_input == 4:
+        elif user_input == 4:
             userRunning = False
-        if user_input == 5:
-            test()    
-
+        elif user_input == 5:
+            test()
+        else:
+            print("Try again")
 if __name__ == "__main__":
     main()
