@@ -34,13 +34,20 @@ def convert_games_file_to_json():
     file_games = ''
     json_games_data = 'files/game_data.json'
     file_games_ext = ''
+    popUpFailed = False
     try:
         file_games_name = fd.askopenfilename()
         file_games_ext = os.path.splitext(file_games_name)[1]
         file_games = open(file_games_name,"r")
         print
     except:
-        print("You have not selected a file or it does not exist.")
+        print("You have not selected a file or the popup failed.")
+        popUpFailed = True
+    if popUpFailed:
+        print("Please type in the path to your file (relative to this python file)")
+        file_games_name = input()
+        file_games_ext = os.path.splitext(file_games_name)[1]
+        file_games = open(file_games_name,"r")
     if file_games:
         if(os.path.exists(json_games_data)):
             os.remove(json_games_data)
