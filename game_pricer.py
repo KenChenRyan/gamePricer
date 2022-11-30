@@ -11,24 +11,22 @@ from tabulate import tabulate
 
 def test():
     test_case = 2
-    match test_case:
-        case 0:
-            print("Testing Borderlands 3")
-            game = "Borderlands 3"
-            ggdotdealspage = "files/borderlands3GGDeals.html"
-            if not os.path.exists(ggdotdealspage):
-                print(game_to_lowest_grey_markerplace_value(game))
-            else:
-                print(game_to_lowest_grey_markerplace_value(game,ggdotdealspage))
-        case 1:
-            #game = "Donuts'n'justice"
-            game = "Borderlands 4"
-            print("Looking for "+game)
+    if test_case == 0:
+        print("Testing Borderlands 3")
+        game = "Borderlands 3"
+        ggdotdealspage = "files/borderlands3GGDeals.html"
+        if not os.path.exists(ggdotdealspage):
             print(game_to_lowest_grey_markerplace_value(game))
-        case 2:
-            print("Testing Borderlands 3")
-            game = "Borderlands 3"
-            print(game_to_lowest_grey_markerplace_value(game))
+        else:
+            print(game_to_lowest_grey_markerplace_value(game,ggdotdealspage))
+    elif test_case == 1:
+        game = "Borderlands 4"
+        print("Looking for "+game)
+        print(game_to_lowest_grey_markerplace_value(game))
+    elif test_case == 2:
+        print("Testing Borderlands 3")
+        game = "Borderlands 3"
+        print(game_to_lowest_grey_markerplace_value(game))
 
 def convert_games_file_to_json():
     #Function converts text file of games to include lowest grey market place value
