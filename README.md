@@ -33,3 +33,4 @@ To utilize the feature of converting a txt file of a list of games, the games in
 ### To Do
 - To see the mean of the first couple of listed prices. Or the lowest listed depending on if the amount of listings doesn't exceed a minimum. The option to only do the lowest listed should be avaiable.
 - Have it exclude a listing based on the DRM of it (Steam/Epic Games Store/Rockstar Games Launcher/GOG/Ubisoft Launcher (UPlay)/EA Games Launcher)
+- Include whether or not a product has been bundeled before
