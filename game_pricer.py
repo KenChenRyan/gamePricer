@@ -107,6 +107,7 @@ def game_to_lowest_grey_markerplace_value(game):
     parser = 'html.parser'
     price = ''
     soup = ''
+    hasBeenBundled = False
     #boolean for if the game will not be found in the search page
     originalGameString = game
     game = game.replace(" ","-")
@@ -124,7 +125,7 @@ def game_to_lowest_grey_markerplace_value(game):
                 emptyList = True
                 print("The game has not been found")
                 #This actually needs to be implemented
-                print("Do you want to add a zero in it's place in the list? (y/n)")
+                #print("Do you want to add a zero in it's place in the list? (y/n)")
                 break
             else:
                 try:
@@ -167,6 +168,10 @@ def game_to_lowest_grey_markerplace_value(game):
         try:
             game_card = soup.body.find('div', class_ = "main-content").find('div',id="page").find('div',id="game-card")
             price = game_card.find('div').find('div').find('div', class_='col-right').find('div').find('div',class_="header-game-prices-tabs-content").find('div').find('div').find('div').find_next_sibling().find('a').find('span').text
+            bundled = game_card.find('div', class_='game-tabs-container-wrapper').find('div').find('div').find('div').find('ul').find('li',id='tab-bundles')
+            if bundled:
+                hasBeenBundled = True
+            print(hasBeenBundled)
             price = price_validation(price)
         except:
             return -1
