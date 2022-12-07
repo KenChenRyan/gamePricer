@@ -1,12 +1,15 @@
 #! python3
-from html.parser import HTMLParser
+from sys import platform
 import json
 import os
 import requests
 from bs4 import BeautifulSoup
 from tabulate import tabulate
+from html.parser import HTMLParser
+
 
 def main():
+    
     userRunning = True
     while (userRunning):
         print("\n---------------------------------------\nWhat would you like to do?\n")
@@ -32,8 +35,14 @@ def main():
 
 #Function converts text file of a list of  games to include lowest grey market place value
 def convert_games_file_to_json(file_games_name = ''):
+    windows = False
+    if platform == 'win32' or platform == 'cygwin':
+        windows = True
     file_games = ''
-    json_games_data = 'files/game_data.json'
+    if windows:
+        json_games_data = 'files/game_data.json'
+    else:
+        json_games_data = 'files\game_data.json'
     #try to get a file from the user
     file_selected = True
     if not file_games_name:
@@ -50,45 +59,51 @@ def convert_games_file_to_json(file_games_name = ''):
                 file_selected = False
     #if the user has given a file name
     if file_selected:
-        file_games_name = "files\\"+file_games_name
+        if windows:
+            file_games_name = "files\\"+file_games_name
+        else:
+            file_games_name = "files/"+file_games_name
         if(os.path.splitext(file_games_name)[1] == '.txt'):
-            with open(file_games_name,'r') as file_games:
-                if(os.path.exists(json_games_data)):
-                    os.remove(json_games_data)
-                json_file = open(json_games_data,"a")
-                json_file.write('{\n"games": [\n')
-                beginning = True
-                count = 0
-                first5LinesDontWork = False
-                try:
-                    for line in file_games:
-                        line = line.strip()
-                        print(line)
-                        price = game_to_lowest_grey_markerplace_value(line)
-                        if isinstance(price, float) or isinstance(price, int):
-                            price = str(price)
-                            pass
-                        elif price[0].isnumeric():
-                            pass
-                        #this is here for the case that price is a string ("Unavaible" or "Coming soon")
-                        else:
-                            price = '"'+price+'"'
-                        #If there was an error while retriving the price then this game will be skipped
-                        if not price == -1:
-                            if not beginning:
-                                json_file.write(',\n')
+            try:
+                with open(file_games_name,'r') as file_games:
+                    if(os.path.exists(json_games_data)):
+                        os.remove(json_games_data)
+                    json_file = open(json_games_data,"a")
+                    json_file.write('{\n"games": [\n')
+                    beginning = True
+                    count = 0
+                    first5LinesDontWork = False
+                    try:
+                        for line in file_games:
+                            line = line.strip()
+                            print(line)
+                            price = game_to_lowest_grey_markerplace_value(line)
+                            if isinstance(price, float) or isinstance(price, int):
+                                price = str(price)
+                                pass
+                            elif price[0].isnumeric():
+                                pass
+                            #this is here for the case that price is a string ("Unavaible" or "Coming soon")
                             else:
-                                beginning = False
-                            json_file.write('{"game":"'+line+'", "price":'+price+'}')
-                        else:
-                            count += 1
-                        if count > 4:
-                            raise Exception()
-                except:
-                    print("5 of the lines in your files have ran into errors. Please check your text file and try again.")
-                    print("Or something is wrong with the HTML parser.")
-                json_file.write('\n]\n}')
-                json_file.close()
+                                price = '"'+price+'"'
+                            #If there was an error while retriving the price then this game will be skipped
+                            if not price == -1:
+                                if not beginning:
+                                    json_file.write(',\n')
+                                else:
+                                    beginning = False
+                                json_file.write('{"game":"'+line+'", "price":'+price+'}')
+                            else:
+                                count += 1
+                            if count > 4:
+                                raise Exception()
+                    except:
+                        print("5 of the lines in your files have ran into errors. Please check your text file and try again.")
+                        print("Or something is wrong with the HTML parser.")
+                    json_file.write('\n]\n}')
+                    json_file.close()
+            except:
+                print("File does not exist")
         else:
             print("Your file format is not of type .txt")
 
@@ -188,7 +203,13 @@ def create_table():
     json_games_with_data = ''
     json_games_with_data_ext = ''
     json_var = ''
-    json_games_with_data = "files/game_data.json"
+    windows = False
+    if platform == 'win32' or platform == 'cygwin':
+        windows = True
+    if windows:
+        json_games_with_data = "files/game_data.json"
+    else:
+        json_games_with_data = "files\game_data.json"
     print("Is your file located at "+json_games_with_data+" ?(y/n)")
     answer = input().lower()
     if 'y' == answer or 'yes' == answer:
@@ -210,7 +231,10 @@ def create_table():
             order = int(order)
         else:
             order = 3
-        file_table_string = "files/table.txt"
+        if windows:
+            file_table_string = "files/table.txt"
+        else:
+            file_table_string = "files\table.txt"
         if os.path.exists(file_table_string):
             os.remove(file_table_string)
         file_table = open(file_table_string,"w", encoding="utf-8")
@@ -247,7 +271,10 @@ def test():
         game = "Borderlands 3"
         print(game_to_lowest_grey_markerplace_value(game))
     elif test_case == 3:
-        convert_games_file_to_json(file_games_name='files/list.txt')
+        if platform == 'win32' or platform == 'cygwin': 
+            convert_games_file_to_json(file_games_name='files/list.txt')
+        else:
+            convert_games_file_to_json(file_games_name='files\list.txt')
 
 if __name__ == "__main__":
     main()
