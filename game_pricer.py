@@ -190,7 +190,7 @@ def game_to_lowest_grey_markerplace_value(game):
             bundled = game_card.find('div', class_='game-tabs-container-wrapper').find('div').find('div').find('div').find('ul').find('li',id='tab-bundles')
             if bundled:
                 hasBeenBundled = True
-            print(hasBeenBundled)
+            #print(hasBeenBundled)
             price = price_validation(price)
         except:
             return -1
