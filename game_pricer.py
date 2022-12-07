@@ -4,7 +4,6 @@ import json
 import os
 import requests
 from bs4 import BeautifulSoup
-from tkinter import filedialog as fd
 from tabulate import tabulate
 
 def main():
@@ -38,8 +37,10 @@ def convert_games_file_to_json(file_games_name = ''):
     #try to get a file from the user
     file_selected = True
     if not file_games_name:
+        print('Please insert your .txt games list file in the "files" folder.')
+        print("Please type in your files name. (Assuming it's in the files folder)")
         try:
-            file_games_name = fd.askopenfilename()
+            file_games_name = input()
         except:
             print("You have not selected a file or the popup failed.")
         if not file_games_name:
@@ -49,6 +50,7 @@ def convert_games_file_to_json(file_games_name = ''):
                 file_selected = False
     #if the user has given a file name
     if file_selected:
+        file_games_name = "files\\"+file_games_name
         if(os.path.splitext(file_games_name)[1] == '.txt'):
             with open(file_games_name,'r') as file_games:
                 if(os.path.exists(json_games_data)):
@@ -171,7 +173,7 @@ def game_to_lowest_grey_markerplace_value(game):
             bundled = game_card.find('div', class_='game-tabs-container-wrapper').find('div').find('div').find('div').find('ul').find('li',id='tab-bundles')
             if bundled:
                 hasBeenBundled = True
-            print(hasBeenBundled)
+            #print(hasBeenBundled)
             price = price_validation(price)
         except:
             return -1
@@ -186,25 +188,15 @@ def create_table():
     json_games_with_data = ''
     json_games_with_data_ext = ''
     json_var = ''
-    popupFailed = False
-    try:
-        json_games_with_data = fd.askopenfilename()
-        if json_games_with_data == '':
-            raise Exception()
+    json_games_with_data = "files/game_data.json"
+    print("Is your file located at "+json_games_with_data+" ?(y/n)")
+    answer = input().lower()
+    if 'y' == answer or 'yes' == answer:
+        pass
+    else:
+        print("Please type in the path to your file (relative to this python file)")
+        json_games_with_data = input()
         json_games_with_data_ext = os.path.splitext(json_games_with_data)[1]
-    except:
-        popupFailed = True
-        print("You have not selected a file or the pop up failed.")
-    if popupFailed:
-        json_games_with_data = "files/game_data.json"
-        print("Is your file located at "+json_games_with_data+" ?(y/n)")
-        answer = input().lower()
-        if 'y' == answer or 'yes' == answer:
-            pass
-        else:
-            print("Please type in the path to your file (relative to this python file)")
-            json_games_with_data = input()
-            json_games_with_data_ext = os.path.splitext(json_games_with_data)[1]
     try:
         with open(json_games_with_data,"r", encoding="utf-8") as file:
             json_var = json.loads(file.read())
