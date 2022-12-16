@@ -3,6 +3,7 @@ from sys import platform
 import json
 import os
 import requests
+import urllib.parse
 from bs4 import BeautifulSoup
 from tkinter import filedialog as fd
 from tabulate import tabulate
@@ -12,8 +13,8 @@ def main():
     userRunning = True
     while (userRunning):
         print("\n---------------------------------------\nWhat would you like to do?\n")
-        print("1. Convert text file of games to include lowest grey market place value.\n2. See the lowest grey marketplace value of a game")
-        print("3. Create table\n4. Quit program\n5. Test routine")
+        print("1. Convert text file of games to include lowest grey market place value.\n2. Create Table")
+        print("3. See the lowest grey marketplace value of a game\n4. Quit program\n5. Test routine")
         user_input = input()
         if user_input.isnumeric():
             user_input = int(user_input)
@@ -35,73 +36,82 @@ def main():
 #Function converts text file of a list of  games to include lowest grey market place value
 def convert_games_file_to_json(file_games_name = ''):
     file_games = ''
-    windows = False
+    #check for OS of user (regarding directory style ("\" or "/"))
+    windows = ''
     if platform == 'win32' or platform == 'cygwin':
+        json_games_data = 'files\game_data.json' 
         windows = True
-    file_games = ''
-    if windows:
-        json_games_data = 'files\game_data.json'
     else:
         json_games_data = 'files/game_data.json'
+        windows = False
     #try to get a file from the user
     file_selected = True
-    gui_failed = False
+    #if the func hasn't been given a file name
     if not file_games_name:
         try:
             file_games_name = fd.askopenfilename()
         except:
-            print("You have not selected a file or the popup failed.")
+            print("The popup failed.")
         if not file_games_name:
-            gui_failed = True
             print('Please insert your .txt games list file in the "files" folder.')
             print("Please type in your files name. (Assuming it's in the files folder)")
             file_games_name = input()
             if not file_games_name:
                 file_selected = False
+            else:
+                if windows:
+                    file_games_name = "files\\"+file_games_name
+                else:
+                    file_games_name = "files/"+file_games_name
     #if the user has given a file name
     if file_selected:
-        if gui_failed:
-            if windows:
-                file_games_name = "files\\"+file_games_name
-            else:
-                file_games_name = "files/"+file_games_name
         if(os.path.splitext(file_games_name)[1] == '.txt'):
+            #if there is a character that differentiates between the games (either EOL, comma, or a line)
+            print("Are your games seperated by empty lines?")
+            ans = input()
+            seperatedByLine = False
+            if ans.lower() == "yes" or ans.lower() == "y":
+                seperatedByLine = True
             try:
+                #avoid setting parameter encoding='utf-8' b/c it will affect performence
+                #and omit bugs when reading json file into json variable in create_table()
                 with open(file_games_name,'r') as file_games:
                     if(os.path.exists(json_games_data)):
                         os.remove(json_games_data)
                     json_file = open(json_games_data,"a")
                     json_file.write('{\n"games": [\n')
                     beginning = True
-                    count = 0
-                    first5LinesDontWork = False
-                    try:
-                        for line in file_games:
-                            line = line.strip()
-                            print(line)
-                            price = game_to_lowest_grey_markerplace_value(line)
-                            if isinstance(price, float) or isinstance(price, int):
-                                price = str(price)
-                                pass
-                            elif price[0].isnumeric():
-                                pass
-                            #this is here for the case that price is a string ("Unavaible" or "Coming soon")
+                    skip = False
+                    for line in file_games:
+                        #if there is a character that differentiates between the games (either EOL, comma, or a line)
+                        if seperatedByLine:
+                            if skip:
+                                skip = False
+                                continue
                             else:
-                                price = '"'+price+'"'
-                            #If there was an error while retriving the price then this game will be skipped
-                            if not price == -1:
-                                if not beginning:
-                                    json_file.write(',\n')
-                                else:
-                                    beginning = False
-                                json_file.write('{"game":"'+line+'", "price":'+price+'}')
-                            else:
-                                count += 1
-                            if count > 4:
-                                raise Exception()
-                    except:
-                        print("5 of the lines in your files have ran into errors. Please check your text file and try again.")
-                        print("Or something is wrong with the HTML parser.")
+                                skip = True
+                        line = line.strip()
+                        #Have ran into lists with this non utf-8 character
+                        #https://stackoverflow.com/questions/2477452/%C3%A2%E2%82%AC-showing-on-page-instead-of
+                        line = line.replace("â€™","'")
+                        print(line)
+                        price = game_to_lowest_grey_markerplace_value(line)
+                        if isinstance(price, float) or isinstance(price, int):
+                            price = str(price)
+                            pass
+                        elif price[0].isnumeric():
+                            pass
+                        #this is here for the case that price is a string ("Unavaible" or "Coming soon")
+                        else:
+                            price = '"'+price+'"'
+                        #If there was an error while retriving the price then this game will be skipped
+                        if not beginning:
+                            json_file.write(',\n')
+                        else:
+                            beginning = False
+                        json_file.write('{"game":"'+line+'", "price":'+price+'}')
+                        if price == str(-1):
+                            print(line+" was not found so it'll be listed as -1.")
                     json_file.write('\n]\n}')
                     json_file.close()
             except:
@@ -126,42 +136,45 @@ def game_to_lowest_grey_markerplace_value(game):
     parser = 'html.parser'
     price = ''
     soup = ''
-    hasBeenBundled = False
     #boolean for if the game will not be found in the search page
-    originalGameString = game
-    game = game.replace(" ","-")
-    r = requests.get("https://gg.deals/game/"+game)
+    hasBeenBundled = False
+    modifiedGameString = game.replace(" ","-")
+    #gg.deals changes commas to dashes
+    modifiedGameString = modifiedGameString.replace(',','-')
+    #GG.deals listing page URL ignores these characters "'",":"
+    modifiedGameString = modifiedGameString.replace("'","")
+    modifiedGameString = modifiedGameString.replace(":","")
+    try:
+        r = requests.get("https://gg.deals/game/"+modifiedGameString)
+    except:
+        print("Check your internet connection")
+        return -1
     #if page of game has not been found right away
     if (r.status_code == 404):
         gamePageFound = False
-        game = originalGameString.replace(" ","+")
+        #requests.get encodes the gameString to ASCII automatically
         r = requests.get("https://gg.deals/games/",params = {'title': game})
         soup = BeautifulSoup(r.text,parser)
-        listOfGames = soup.body.find('div', class_='main-content').find('div', id ='page').find('div', class_='games-box').find('div', class_='game-section').find('div',class_='col-left').find('div').find('div').find_all('div', class_='hoverable-box')
-        emptyList = False
+        listOfGames = soup.body.find('div', class_='main-content').find('div', id ='page').find('div', id='games-container').find('div', class_='game-section').find('div',class_='col-left').find('div').find('div').find_all('div', class_='hoverable-box')
+        #Doesn't actually go through the whole list, just looks at the first element
         for gameInList in listOfGames:
+            #if list is empty
             if 'empty' in gameInList['class']:
-                emptyList = True
-                print("The game has not been found")
-                #This actually needs to be implemented
-                #print("Do you want to add a zero in it's place in the list? (y/n)")
-                break
+                print("The game in question ("+game+") could not be found")
+                return -1
             else:
-                try:
-                    listingName = gameInList.find('div',class_='game-info-wrapper').find('div').find('div').text
-                    #make them both all lower case
-                    if listingName.lower() == originalGameString.lower():
-                        price = gameInList.find('div',class_='game-info-wrapper').find('div', class_='price-wrap').find('div', class_="shop-price-keyshops").find('div').text
-                        price = price_validation(price)
-                except:
-                    return -1
-        #if the games that have been found in the list do not match the given game then have
+                #in the case that the first game in the search page is the matching game
+                listingName = gameInList.find('div',class_='game-info-wrapper').find('div').find('div').find('a').get_text()
+                #make them both all lower case
+                if listingName.lower() == game.lower():
+                    price = gameInList.find('div',class_='game-info-wrapper').find('div', class_='price-wrap').find('div', class_="shop-price-keyshops").find('div').text
+                    return (price_validation(price))
+        #if the 1st game that has been found in the list do not match the given game then have
         #the user confirm if there is a matching game
-        if not emptyList and  price == '':
+        if price == '':
             for gameInList in listOfGames:
-                listingName = gameInList.find('div',class_='game-info-wrapper').find('div').find('div').text
-                print("Is your game "+listingName+"?(y/n)")
-                answer = (input()).lower()
+                listingName = gameInList.find('div',class_='game-info-wrapper').find('div').find('div').find('a').get_text()
+                answer = ''
                 while(not (answer == 'y' or answer == 'yes' or answer == 'n' or answer == 'no')):
                     print("Is your game "+listingName+"?(y/n)")
                     answer = (input()).lower()                
@@ -174,10 +187,9 @@ def game_to_lowest_grey_markerplace_value(game):
                     break
                 elif (answer == 'n' or answer == 'no'):
                     continue
-                else:
-                    print("I'll assume that's a no")
             if price == '':
-                print("The game in question("+originalGameString+")could not be found")  
+                print("The game in question("+game+")could not be found")
+                price = -1
     else:
         print("Game found right away")
         gamePageFound = True
@@ -188,11 +200,13 @@ def game_to_lowest_grey_markerplace_value(game):
             game_card = soup.body.find('div', class_ = "main-content").find('div',id="page").find('div',id="game-card")
             price = game_card.find('div').find('div').find('div', class_='col-right').find('div').find('div',class_="header-game-prices-tabs-content").find('div').find('div').find('div').find_next_sibling().find('a').find('span').text
             bundled = game_card.find('div', class_='game-tabs-container-wrapper').find('div').find('div').find('div').find('ul').find('li',id='tab-bundles')
+            #Bundled status is still to be iplemented into the json file
             if bundled:
                 hasBeenBundled = True
             #print(hasBeenBundled)
             price = price_validation(price)
         except:
+            print("Error encountered in page. Price set to -1")
             return -1
     return price
 
@@ -275,16 +289,21 @@ def create_table():
         file_table.close()
 
 def test():
-    test_case = 3
+    test_case = 2
+    #game that doesn't exist but has results
     if test_case == 0:
-        pass
-    elif test_case == 1:
         game = "Borderlands 4"
         print("Looking for "+game)
         print(game_to_lowest_grey_markerplace_value(game))
+    #game with comma
+    elif test_case == 1:
+        game = "7,62 Hard Life"
+        print("Looking for "+game)
+        print(game_to_lowest_grey_markerplace_value(game))
+    #game with "odd" character (’ instead of ')
     elif test_case == 2:
-        print("Testing Borderlands 3")
-        game = "Borderlands 3"
+        game = "Morbid: The Seven Acolyte’s"
+        print("Looking for "+game)
         print(game_to_lowest_grey_markerplace_value(game))
     elif test_case == 3:
         if platform == 'win32' or platform == 'cygwin': 
