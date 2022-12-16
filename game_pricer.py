@@ -217,7 +217,8 @@ def organize_json(is_ascending, json_object):
 
 def create_table():
     json_games_with_data = ''
-    json_games_with_data_ext = ''
+    #not being used currently. Likely to be taken out
+    #json_games_with_data_ext = ''
     json_var = ''
     popupFailed = False
     windows = False
@@ -227,7 +228,7 @@ def create_table():
         json_games_with_data = fd.askopenfilename()
         if json_games_with_data == '':
             raise Exception()
-        json_games_with_data_ext = os.path.splitext(json_games_with_data)[1]
+        #json_games_with_data_ext = os.path.splitext(json_games_with_data)[1]
     except:
         popupFailed = True
         print("You have not selected a file or the pop up failed.")
@@ -244,7 +245,7 @@ def create_table():
         else:
             print("Please type in the path to your file (relative to this python file)")
             json_games_with_data = input()
-            json_games_with_data_ext = os.path.splitext(json_games_with_data)[1]
+            #json_games_with_data_ext = os.path.splitext(json_games_with_data)[1]
     try:
         with open(json_games_with_data,"r", encoding="utf-8") as file:
             json_var = json.loads(file.read())
