@@ -21,10 +21,10 @@ def main():
         if user_input == 1:
             print("Txt files will be assumed that games are seperated by newlines.")
             convert_games_file_to_json()
-        elif user_input == 2:
+        elif user_input == 3:
             game = input("What's the name of the game?\n")
             print(game_to_lowest_grey_markerplace_value(game))
-        elif user_input == 3:
+        elif user_input == 2:
             create_table()
         elif user_input == 4:
             userRunning = False
