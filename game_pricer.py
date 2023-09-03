@@ -198,7 +198,8 @@ def game_to_lowest_grey_markerplace_value(game):
     if gamePageFound and price == '':
         try:
             game_card = soup.body.find('div', class_ = "main-content").find('div',id="page").find('div',id="game-card")
-            price = game_card.find('div').find('div').find('div', class_='col-right').find('div').find('div',class_="header-game-prices-tabs-content").find('div').find('div').find('div').find_next_sibling().find('a').find('span').text
+            price = game_card.find('div', class_="game-header").find('div', class_="game-section").find('div', class_='col-right').find('div').find('div',class_="header-game-prices-tabs-content").find('div').find('div').find('div').find_next_sibling().find('a').find('span').text
+            
             bundled = game_card.find('div', class_='game-tabs-container-wrapper').find('div').find('div').find('div').find('ul').find('li',id='tab-bundles')
             #Bundled status is still to be iplemented into the json file
             if bundled:
