@@ -15,7 +15,7 @@ To activate/enter the virtual environment in a Unix based enviornment (Linux or 
 To install the required Python libraries (Whether inside a virtual environment or instaling it outside)
 ```pip3 install -r .\requirements.txt```.
 
-**Some linux based installations of Python3 won't come with tkinter (starndary Python GUI) installed (used for file selection). Use the apt-get command below to install the library if you get such an error**
+**Some linux based installations of Python3 won't come with tkinter (standard Python GUI) installed (used for file selection). Use the apt-get command below to install the library if you get such an error**
 ```sudo apt-get install python3-tk```.
 There is an option to enter the files as a string so that the GUI isn't used if the user doesn't have a GUI based desktop installed. Currently the program  requires the module to run properly.
 
